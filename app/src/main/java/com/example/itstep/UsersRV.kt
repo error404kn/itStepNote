@@ -1,30 +1,41 @@
 package com.example.itstep
 
+import android.app.AlertDialog
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.AdapterView.OnItemLongClickListener
 import androidx.recyclerview.widget.RecyclerView
 import com.example.itstep.databinding.SingleItemBinding
 
-class UsersRV(
-    private val list: MutableList<NameModel>,
-    private val iconList: List<Int>
-): RecyclerView.Adapter<UsersRV.UserViewHolder>() {
+class UsersRV(): RecyclerView.Adapter<UsersRV.UserViewHolder>() {
 
-    var itemCallback: ((Int, String) -> Unit)? = null
+    var itemCallback: ((String) -> Unit)? = null
+
+    private var noteList = emptyList<Note>()
+    var onItemLongClickListener: ((Note) -> Unit)? = null
 
     inner class UserViewHolder(
-        private val binding: SingleItemBinding
+        private val binding: SingleItemBinding,
     ): RecyclerView.ViewHolder(binding.root) {
+        init {
+            itemView.setOnLongClickListener{
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION){
+                    onItemLongClickListener?.invoke(noteList[position])
+                }
+                true
+            }
+        }
         fun bind() {
             val item = getItem(adapterPosition)
-            val randomIcon = iconList.random()
 
             binding.apply {
-                textView.text = item.name
-                imageView.setImageResource(randomIcon)
+                titleTV.text = item.title
+                noteTV.text = item.note
 
                 root.setOnClickListener {
-                    itemCallback?.invoke(randomIcon, item.name)
+                    itemCallback?.invoke(item.title)
                 }
             }
         }
@@ -41,14 +52,18 @@ class UsersRV(
         )
     }
 
-    override fun getItemCount(): Int = list.size
+    override fun getItemCount(): Int = noteList.size
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         holder.bind()
     }
 
-    private fun getItem(position: Int): NameModel {
-        return list[position]
+    private fun getItem(position: Int): Note {
+        return noteList[position]
     }
 
+    fun updateList(newList: List<Note>) {
+        noteList = newList
+        notifyDataSetChanged()
+    }
 }
